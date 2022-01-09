@@ -1,10 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
-
-	"github.com/msksgm/go-techblog-msksgm/server"
 )
 
 type config struct {
@@ -14,9 +12,7 @@ type config struct {
 
 func main() {
 	cfg := envConfig()
-
-	srv := server.NewServer()
-	log.Fatal(srv.Run(cfg.port))
+	fmt.Println(cfg)
 }
 
 func envConfig() config {
