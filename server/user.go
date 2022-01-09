@@ -23,6 +23,15 @@ func init() {
 	})
 }
 
+func userResponse(user *model.User, _token ...string) M {
+	if user == nil {
+		return nil
+	}
+	return M{
+		"username": user.Username,
+	}
+}
+
 func (s *Server) createUser() http.HandlerFunc {
 	type Input struct {
 		User struct {
