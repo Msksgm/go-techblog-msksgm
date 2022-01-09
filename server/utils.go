@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 )
@@ -9,7 +10,7 @@ import (
 // M is a generic map
 type M map[string]interface{}
 
-func writerJSON(w http.ResponseWriter, code int, data interface{}) {
+func writeJSON(w http.ResponseWriter, code int, data interface{}) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		serverError(w, err)
@@ -23,4 +24,8 @@ func writerJSON(w http.ResponseWriter, code int, data interface{}) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func readJSON(body io.Reader, input interface{}) error {
+	return json.NewDecoder(body).Decode(input)
 }

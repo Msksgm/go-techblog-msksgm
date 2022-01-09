@@ -7,14 +7,17 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/msksgm/go-techblog-msksgm/model"
+	"github.com/msksgm/go-techblog-msksgm/postgres"
 )
 
 type Server struct {
-	server *http.Server
-	router *mux.Router
+	server      *http.Server
+	router      *mux.Router
+	userService model.UserService
 }
 
-func NewServer() *Server {
+func NewServer(db *postgres.DB) *Server {
 	s := Server{
 		server: &http.Server{
 			WriteTimeout: 5 * time.Second,
@@ -27,6 +30,7 @@ func NewServer() *Server {
 	s.routes()
 
 	s.server.Handler = s.router
+	s.userService = postgres.NewUserService(db)
 
 	return &s
 }
@@ -46,6 +50,6 @@ func healthCheck() http.Handler {
 			"status":  "available",
 			"message": "health",
 		}
-		writerJSON(rw, http.StatusOK, resp)
+		writeJSON(rw, http.StatusOK, resp)
 	})
 }
