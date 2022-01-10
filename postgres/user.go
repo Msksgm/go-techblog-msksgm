@@ -38,7 +38,7 @@ func createUser(ctx context.Context, tx *sqlx.Tx, user *model.User) error {
 	err := tx.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		switch {
-		case err.Error() == `pg: duplicate key value violates unique "users_useranme_key`:
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
 			return model.ErrDuplicateUsername
 		default:
 			return err
