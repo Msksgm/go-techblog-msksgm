@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -36,7 +35,6 @@ func Test_createUser(t *testing.T) {
 		return nil
 	}
 
-	fmt.Println(req)
 	srv.router.ServeHTTP(w, req)
 	expectedResp := userResponse(&user)
 	gotResp := M{}
