@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/msksgm/go-techblog-msksgm/mock"
 	"github.com/msksgm/go-techblog-msksgm/model"
 )
@@ -49,12 +48,33 @@ func Test_createUser(t *testing.T) {
 	}
 }
 
-func testServer() *Server {
-	srv := &Server{
-		router: mux.NewRouter(),
+func Test_loginUser(t *testing.T) {
+	userStore := &mock.UserService{}
+	srv := testServer()
+	srv.userService = userStore
+
+	userStore.AuthenticateFn = func() *model.User {
+		user := &model.User{
+			Username: "username",
+		}
+		return user
 	}
-	srv.routes()
-	return srv
+
+	input := `{
+		"user": {
+			"username": "username",
+			"password": "password"
+		}
+	}`
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/users/login", strings.NewReader(input))
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+
+	if code := w.Code; code != http.StatusOK {
+		t.Errorf("expected status code of 200, but got %d", code)
+	}
 }
 
 func extractResponseUserBody(body io.Reader, v interface{}) {
