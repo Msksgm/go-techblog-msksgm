@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -122,6 +123,51 @@ func (s *Server) getCurrentUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user := userFromContext(ctx)
+		user.Token = userTokenFromContext(ctx)
+
+		writeJSON(w, http.StatusOK, M{"user": user})
+	}
+}
+
+func (s *Server) updateUser() http.HandlerFunc {
+	type Input struct {
+		User struct {
+			Username *string `json:"username,omitempty"`
+			Password *string `json:"password,omitempty"`
+		} `json:"user,omitempty" validate:"required"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := &Input{}
+
+		if err := readJSON(r.Body, &input); err != nil {
+			badRequestError(w)
+			return
+		}
+
+		if err := validate.Struct(input.User); err != nil {
+			validationError(w, err)
+			return
+		}
+
+		fmt.Println(r.Body)
+		fmt.Println(input)
+		ctx := r.Context()
+		user := userFromContext(ctx)
+		patch := model.UserPatch{
+			Username: input.User.Username,
+		}
+		fmt.Println(input.User)
+
+		if v := input.User.Password; v != nil {
+			user.SetPassword(*v)
+		}
+
+		err := s.userService.UpdateUser(ctx, user, patch)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
 		user.Token = userTokenFromContext(ctx)
 
 		writeJSON(w, http.StatusOK, M{"user": user})

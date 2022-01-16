@@ -10,6 +10,7 @@ type UserService struct {
 	CreateUserFn     func(*model.User) error
 	AuthenticateFn   func() *model.User
 	GetCurrentUserFn func() *model.User
+	UpdateUserFn     func() *model.User
 }
 
 func (m *UserService) CreateUser(_ context.Context, user *model.User) error {
@@ -22,4 +23,8 @@ func (m *UserService) Authenticate(_ context.Context, username, password string)
 
 func (m *UserService) UserByUsername(_ context.Context, username string) (*model.User, error) {
 	return m.GetCurrentUserFn(), nil
+}
+
+func (m *UserService) UpdateUser(_ context.Context, user *model.User, patch model.UserPatch) error {
+	return nil
 }

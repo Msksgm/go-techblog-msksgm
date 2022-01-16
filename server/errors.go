@@ -32,6 +32,10 @@ func validationError(w http.ResponseWriter, _err error) {
 	errorResponse(w, http.StatusUnprocessableEntity, resp)
 }
 
+func badRequestError(w http.ResponseWriter) {
+	errorResponse(w, http.StatusUnprocessableEntity, "unable to process request")
+}
+
 func serverError(w http.ResponseWriter, err error) {
 	log.Println(err)
 	errorResponse(w, http.StatusInternalServerError, "internal error")

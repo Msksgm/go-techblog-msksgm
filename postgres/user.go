@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/msksgm/go-techblog-msksgm/model"
@@ -126,4 +127,55 @@ func queryUsers(ctx context.Context, tx *sqlx.Tx, query string, args ...interfac
 	}
 
 	return users, nil
+}
+
+func (us *UserService) UpdateUser(ctx context.Context, user *model.User, patch model.UserPatch) error {
+	tx, err := us.db.BeginTxx(ctx, nil)
+	if err != nil {
+		log.Println(err)
+		return model.ErrInternal
+	}
+
+	defer tx.Rollback()
+
+	if err := updateUser(ctx, tx, user, patch); err != nil {
+		log.Println(err)
+		return model.ErrInternal
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println(err)
+		return model.ErrInternal
+	}
+
+	return nil
+}
+
+func updateUser(ctx context.Context, tx *sqlx.Tx, user *model.User, patch model.UserPatch) error {
+	if v := patch.Username; v != nil {
+		user.Username = *v
+	}
+
+	if v := patch.PasswordHash; v != nil {
+		user.PasswordHash = *v
+	}
+
+	args := []interface{}{
+		user.Username,
+		user.PasswordHash,
+		user.ID,
+	}
+
+	query := `
+	UPDATE users
+	SET username = $1, password_hash=$2, updated_at=NOW()
+	WHERE id = $3
+	RETURNING updated_at`
+
+	if err := tx.QueryRowxContext(ctx, query, args...).Scan(&user.UpdatedAt); err != nil {
+		log.Printf("error updating record: %v", err)
+		return model.ErrInternal
+	}
+
+	return nil
 }
