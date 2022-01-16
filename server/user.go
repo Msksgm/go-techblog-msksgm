@@ -32,6 +32,16 @@ func userResponse(user *model.User, _token ...string) M {
 	}
 }
 
+func userTokenResponse(user *model.User, _token ...string) M {
+	if user == nil {
+		return nil
+	}
+	return M{
+		"username": user.Username,
+		"token":    user.Token,
+	}
+}
+
 func (s *Server) createUser() http.HandlerFunc {
 	type Input struct {
 		User struct {
@@ -104,6 +114,16 @@ func (s *Server) loginUser() http.HandlerFunc {
 		}
 
 		user.Token = token
+		writeJSON(w, http.StatusOK, M{"user": user})
+	}
+}
+
+func (s *Server) getCurrentUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		user := userFromContext(ctx)
+		user.Token = userTokenFromContext(ctx)
+
 		writeJSON(w, http.StatusOK, M{"user": user})
 	}
 }

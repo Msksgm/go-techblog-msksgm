@@ -46,6 +46,12 @@ func invalidUserCredentialsError(w http.ResponseWriter) {
 	errorResponse(w, http.StatusUnauthorized, msg)
 }
 
+func invalidAuthTokenError(w http.ResponseWriter) {
+	w.Header().Set("WWW-Authenticate", "Token")
+	msg := "invalid or missing authentication token"
+	errorResponse(w, http.StatusUnauthorized, msg)
+}
+
 func checkTagRules(e validator.FieldError) (errMsg string) {
 	tag, field, param := e.ActualTag(), e.Field(), e.Param()
 

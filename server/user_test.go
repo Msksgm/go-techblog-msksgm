@@ -77,6 +77,44 @@ func Test_loginUser(t *testing.T) {
 	}
 }
 
+func Test_getCurrentUser(t *testing.T) {
+	userStore := &mock.UserService{}
+	srv := testServer()
+	srv.userService = userStore
+	token, err := generateUserToken(
+		&model.User{
+			ID:       1,
+			Username: "username",
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	user := &model.User{
+		Username: "username",
+		Token:    token,
+	}
+	userStore.GetCurrentUserFn = func() *model.User {
+		return user
+	}
+	expectedResp := userTokenResponse(user)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user", nil)
+	req.Header.Add("Authorization", strings.Join([]string{"Bearer", token}, " "))
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+	gotResp := M{}
+	extractResponseUserBody(w.Body, &gotResp)
+	if code := w.Code; code != http.StatusOK {
+		t.Errorf("expected status code of 200, but got %d", code)
+	}
+
+	if !reflect.DeepEqual(expectedResp, gotResp) {
+		t.Errorf("expected response %v, but got %v", expectedResp, gotResp)
+	}
+}
+
 func extractResponseUserBody(body io.Reader, v interface{}) {
 	mm := M{}
 	_ = readJSON(body, &mm)

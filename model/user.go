@@ -16,6 +16,8 @@ type User struct {
 	UpdatedAt    time.Time `json:"-" db:"updated_at"`
 }
 
+var AnonymousUser User
+
 type UserFilter struct {
 	ID       *uint
 	Username *string
@@ -46,4 +48,6 @@ type UserService interface {
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 
 	CreateUser(context.Context, *User) error
+
+	UserByUsername(ctx context.Context, username string) (*User, error)
 }
