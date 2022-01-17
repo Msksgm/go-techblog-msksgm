@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/msksgm/go-techblog-msksgm/model"
 )
 
@@ -78,5 +79,30 @@ func (s *Server) listArticles() http.HandlerFunc {
 		}
 
 		writeJSON(w, http.StatusOK, M{"articles": articles})
+	}
+}
+
+func (s *Server) getArticle() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		filter := model.ArticleFilter{}
+
+		if slug, exists := vars["slug"]; exists {
+			filter.Slug = &slug
+		}
+
+		articles, err := s.articleService.Articles(r.Context(), filter)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
+		var article *model.Article
+
+		if len(articles) > 0 {
+			article = articles[0]
+		}
+
+		writeJSON(w, http.StatusOK, M{"article": article})
 	}
 }
