@@ -13,3 +13,7 @@ type ArticleService struct {
 func (m *ArticleService) CreateArticle(_ context.Context, article *model.Article) error {
 	return m.CreateArticleFn(article)
 }
+
+func (m *ArticleService) Articles(_ context.Context, af model.ArticleFilter) ([]*model.Article, error) {
+	return nil, nil
+}

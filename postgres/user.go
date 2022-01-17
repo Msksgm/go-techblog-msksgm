@@ -179,3 +179,7 @@ func updateUser(ctx context.Context, tx *sqlx.Tx, user *model.User, patch model.
 
 	return nil
 }
+
+func findUserByID(ctx context.Context, tx *sqlx.Tx, id uint) (*model.User, error) {
+	return findOneUser(ctx, tx, model.UserFilter{ID: &id})
+}

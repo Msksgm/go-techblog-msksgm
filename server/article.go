@@ -61,3 +61,22 @@ func (s *Server) createArticle() http.HandlerFunc {
 		writeJSON(w, http.StatusCreated, M{"article": article})
 	}
 }
+
+func (s *Server) listArticles() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		filter := model.ArticleFilter{}
+
+		if v := query.Get("author"); v != "" {
+			filter.AuthorUsername = &v
+		}
+
+		articles, err := s.articleService.Articles(r.Context(), filter)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, M{"articles": articles})
+	}
+}
