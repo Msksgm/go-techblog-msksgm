@@ -12,9 +12,10 @@ import (
 )
 
 type Server struct {
-	server      *http.Server
-	router      *mux.Router
-	userService model.UserService
+	server         *http.Server
+	router         *mux.Router
+	userService    model.UserService
+	articleService model.ArticleService
 }
 
 func NewServer(db *postgres.DB) *Server {
@@ -29,8 +30,10 @@ func NewServer(db *postgres.DB) *Server {
 
 	s.routes()
 
-	s.server.Handler = s.router
 	s.userService = postgres.NewUserService(db)
+	as := postgres.NewArticleService(db)
+	s.articleService = as
+	s.server.Handler = s.router
 
 	return &s
 }

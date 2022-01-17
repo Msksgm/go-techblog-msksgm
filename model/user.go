@@ -49,6 +49,10 @@ func (u User) VerifyPassword(password string) bool {
 	return err == nil
 }
 
+func (u *User) IsAnonymous() bool {
+	return u == &AnonymousUser
+}
+
 type UserService interface {
 	Authenticate(ctx context.Context, username, password string) (*User, error)
 
