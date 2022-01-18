@@ -38,4 +38,5 @@ type ArticleService interface {
 	ArticleBySlug(context.Context, string) (*Article, error)
 	Articles(context.Context, ArticleFilter) ([]*Article, error)
 	UpdateArticle(context.Context, *Article, ArticlePatch) error
+	DeleteArticle(context.Context, uint) error
 }

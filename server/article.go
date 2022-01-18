@@ -163,3 +163,36 @@ func (s *Server) updateArticle() http.HandlerFunc {
 		writeJSON(w, http.StatusOK, M{"article": article})
 	}
 }
+
+func (s *Server) deleteArticle() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug := mux.Vars(r)["slug"]
+
+		article, err := s.articleService.ArticleBySlug(r.Context(), slug)
+		if err != nil {
+			switch {
+			case errors.Is(err, model.ErrNotFound):
+				err := ErrorM{"article": []string{"requested article not found"}}
+				notFoundError(w, err)
+			default:
+				serverError(w, err)
+			}
+			return
+		}
+
+		user := userFromContext(r.Context())
+
+		if user.ID != article.AuthorID {
+			err := ErrorM{"article": []string{"forbidden request"}}
+			errorResponse(w, http.StatusForbidden, err)
+			return
+		}
+
+		if err := s.articleService.DeleteArticle(r.Context(), article.ID); err != nil {
+			serverError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusNoContent, nil)
+	}
+}

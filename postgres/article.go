@@ -211,3 +211,26 @@ func updateArticle(ctx context.Context, tx *sqlx.Tx, article *model.Article, pat
 
 	return nil
 }
+
+func (as *ArticleService) DeleteArticle(ctx context.Context, id uint) error {
+	tx, err := as.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	err = deleteArticle(ctx, tx, id)
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func deleteArticle(ctx context.Context, tx *sqlx.Tx, id uint) error {
+	query := "DELETE FROM articles WHERE id = $1"
+
+	return execQuery(ctx, tx, query, id)
+}
