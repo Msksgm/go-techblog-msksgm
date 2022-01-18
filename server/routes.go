@@ -25,5 +25,6 @@ func (s *Server) routes() {
 		authApiRoutes.Handle("/articles", s.createArticle()).Methods("POST")
 		authApiRoutes.Handle("/articles", s.listArticles()).Methods("GET")
 		authApiRoutes.Handle("/articles/{slug}", s.getArticle()).Methods("GET")
+		authApiRoutes.Handle("/articles/{slug}", s.updateArticle()).Methods("PUT", "PATCH")
 	}
 }

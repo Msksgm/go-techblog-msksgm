@@ -27,7 +27,15 @@ type ArticleFilter struct {
 	Offset int
 }
 
+type ArticlePatch struct {
+	Title *string
+	Body  *string
+	Slug  *string
+}
+
 type ArticleService interface {
 	CreateArticle(context.Context, *Article) error
+	ArticleBySlug(context.Context, string) (*Article, error)
 	Articles(context.Context, ArticleFilter) ([]*Article, error)
+	UpdateArticle(context.Context, *Article, ArticlePatch) error
 }

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/msksgm/go-techblog-msksgm/model"
@@ -132,6 +133,81 @@ func attachArticleAssociation(ctx context.Context, tx *sqlx.Tx, article *model.A
 	}
 
 	article.Author = user
+
+	return nil
+}
+
+func (as *ArticleService) ArticleBySlug(ctx context.Context, slug string) (*model.Article, error) {
+	tx, err := as.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback()
+
+	article, err := findArticleBySlug(ctx, tx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return article, tx.Commit()
+}
+
+func findArticleBySlug(ctx context.Context, tx *sqlx.Tx, slug string) (*model.Article, error) {
+	filter := model.ArticleFilter{Slug: &slug}
+	articles, err := findArticles(ctx, tx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(articles) == 0 {
+		return nil, model.ErrNotFound
+	}
+
+	return articles[0], err
+}
+
+func (as *ArticleService) UpdateArticle(ctx context.Context, article *model.Article, filter model.ArticlePatch) error {
+	tx, err := as.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	err = updateArticle(ctx, tx, article, filter)
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func updateArticle(ctx context.Context, tx *sqlx.Tx, article *model.Article, patch model.ArticlePatch) error {
+	if v := patch.Body; v != nil {
+		article.Body = *v
+	}
+
+	if v := patch.Title; v != nil {
+		article.Title = *v
+	}
+
+	args := []interface{}{
+		article.Body,
+		article.Title,
+		article.ID,
+	}
+
+	query := `
+	UPDATE articles
+	SET body = $1, title = $2, updated_at = NOW() WHERE id = $3
+	RETURNING updated_at`
+
+	if err := tx.QueryRowxContext(ctx, query, args...).Scan(&article.UpdatedAt); err != nil {
+		log.Printf("error updating record: %v", err)
+		return model.ErrInternal
+	}
 
 	return nil
 }

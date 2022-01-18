@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -101,6 +102,62 @@ func (s *Server) getArticle() http.HandlerFunc {
 
 		if len(articles) > 0 {
 			article = articles[0]
+		}
+
+		writeJSON(w, http.StatusOK, M{"article": article})
+	}
+}
+
+func (s *Server) updateArticle() http.HandlerFunc {
+	type Input struct {
+		Article struct {
+			Title *string `json:"title,omitempty"`
+			Body  *string `json:"body,omitempty"`
+			Slug  *string `json:"slug,omitempty"`
+		} `json:"article,omitempty"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := Input{}
+
+		if err := readJSON(r.Body, &input); err != nil {
+			badRequestError(w)
+			return
+		}
+
+		slug := mux.Vars(r)["slug"]
+
+		article, err := s.articleService.ArticleBySlug(r.Context(), slug)
+		if err != nil {
+			switch {
+			case errors.Is(err, model.ErrNotFound):
+				err := ErrorM{"article": []string{"requested article not found"}}
+				notFoundError(w, err)
+			default:
+				serverError(w, err)
+			}
+			return
+		}
+
+		user := userFromContext(r.Context())
+
+		if user.ID != article.AuthorID {
+			err := ErrorM{"article": []string{"forbidden request"}}
+			errorResponse(w, http.StatusForbidden, err)
+			return
+		}
+
+		patch := model.ArticlePatch{
+			Title: input.Article.Title,
+			Body:  input.Article.Body,
+		}
+
+		// if patch.Title != nil {
+		// 	*patch.Slug = goslug.Make(*patch.Title)
+		// }
+
+		if err := s.articleService.UpdateArticle(r.Context(), article, patch); err != nil {
+			serverError(w, err)
+			return
 		}
 
 		writeJSON(w, http.StatusOK, M{"article": article})

@@ -72,3 +72,7 @@ func checkTagRules(e validator.FieldError) (errMsg string) {
 	}
 	return
 }
+
+func notFoundError(w http.ResponseWriter, err ErrorM) {
+	errorResponse(w, http.StatusNotFound, err)
+}
