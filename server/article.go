@@ -113,7 +113,6 @@ func (s *Server) updateArticle() http.HandlerFunc {
 		Article struct {
 			Title *string `json:"title,omitempty"`
 			Body  *string `json:"body,omitempty"`
-			Slug  *string `json:"slug,omitempty"`
 		} `json:"article,omitempty"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -150,10 +149,6 @@ func (s *Server) updateArticle() http.HandlerFunc {
 			Title: input.Article.Title,
 			Body:  input.Article.Body,
 		}
-
-		// if patch.Title != nil {
-		// 	*patch.Slug = goslug.Make(*patch.Title)
-		// }
 
 		if err := s.articleService.UpdateArticle(r.Context(), article, patch); err != nil {
 			serverError(w, err)
