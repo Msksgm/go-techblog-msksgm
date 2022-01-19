@@ -115,6 +115,46 @@ func Test_getCurrentUser(t *testing.T) {
 	}
 }
 
+func Test_updateUser(t *testing.T) {
+	userStore := &mock.UserService{}
+	srv := testServer()
+	srv.userService = userStore
+	token, err := generateUserToken(
+		&model.User{
+			ID:       1,
+			Username: "username",
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	userStore.UpdateUserFn = func() *model.User {
+		return nil
+	}
+	// user := &model.User{
+	// 	Username: "username_updated",
+	// 	Token:    token,
+	// }
+	// expectedResp := userTokenResponse(user)
+
+	input := `{
+		"user": {
+			"username": "username_updated",
+			"password": "password_updated"
+		}
+	}`
+
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/user", strings.NewReader(input))
+	req.Header.Add("Authorization", strings.Join([]string{"Bearer", token}, " "))
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+
+	// if code := w.Code; code != http.StatusOK {
+	// 	t.Errorf("expected status code of 200, but got %d", code)
+	// }
+}
+
 func extractResponseUserBody(body io.Reader, v interface{}) {
 	mm := M{}
 	_ = readJSON(body, &mm)
