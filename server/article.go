@@ -13,9 +13,11 @@ func articleResponse(article *model.Article) M {
 		return nil
 	}
 	return M{
-		"title": article.Title,
-		"body":  article.Body,
-		"slug":  article.Slug,
+		"title":     article.Title,
+		"body":      article.Body,
+		"slug":      article.Slug,
+		"createdAt": article.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		"updatedAt": article.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 }
 

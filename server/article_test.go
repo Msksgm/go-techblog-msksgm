@@ -15,8 +15,10 @@ import (
 
 func Test_createArticle(t *testing.T) {
 	articleStore := &mock.ArticleService{}
+	userStore := &mock.UserService{}
 	srv := testServer()
 	srv.articleService = articleStore
+	srv.userService = userStore
 
 	token, err := generateUserToken(
 		&model.User{
@@ -40,14 +42,22 @@ func Test_createArticle(t *testing.T) {
 	req.Header.Add("Authorization", strings.Join([]string{"Bearer", token}, " "))
 	w := httptest.NewRecorder()
 
+	currentUser := &model.User{
+		Username: "username",
+		Token:    token,
+	}
+	userStore.GetCurrentUserFn = func() *model.User {
+		return currentUser
+	}
+
 	var article model.Article
 	articleStore.CreateArticleFn = func(a *model.Article) error {
 		article = *a
 		return nil
 	}
+	srv.router.ServeHTTP(w, req)
 	expectedResp := articleResponse(&article)
 
-	srv.router.ServeHTTP(w, req)
 	gotResp := M{}
 	extractResponseArticleBody(w.Body, &gotResp)
 
