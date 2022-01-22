@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -149,14 +148,11 @@ func (s *Server) updateUser() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(r.Body)
-		fmt.Println(input)
 		ctx := r.Context()
 		user := userFromContext(ctx)
 		patch := model.UserPatch{
 			Username: input.User.Username,
 		}
-		fmt.Println(input.User)
 
 		if v := input.User.Password; v != nil {
 			user.SetPassword(*v)

@@ -128,14 +128,6 @@ func Test_updateUser(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	userStore.UpdateUserFn = func() *model.User {
-		return nil
-	}
-	// user := &model.User{
-	// 	Username: "username_updated",
-	// 	Token:    token,
-	// }
-	// expectedResp := userTokenResponse(user)
 
 	input := `{
 		"user": {
@@ -144,15 +136,35 @@ func Test_updateUser(t *testing.T) {
 		}
 	}`
 
-	req := httptest.NewRequest(http.MethodPatch, "/api/v1/user", strings.NewReader(input))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/user", strings.NewReader(input))
 	req.Header.Add("Authorization", strings.Join([]string{"Bearer", token}, " "))
 	w := httptest.NewRecorder()
 
-	srv.router.ServeHTTP(w, req)
+	currentUser := &model.User{
+		Username: "username",
+		Token:    token,
+	}
+	userStore.GetCurrentUserFn = func() *model.User {
+		return currentUser
+	}
 
-	// if code := w.Code; code != http.StatusOK {
-	// 	t.Errorf("expected status code of 200, but got %d", code)
-	// }
+	var updatedUser model.User
+	userStore.UpdateUserFn = func(u *model.User) error {
+		updatedUser = *u
+		return nil
+	}
+	srv.router.ServeHTTP(w, req)
+	expectedResp := userTokenResponse(&updatedUser)
+	gotResp := M{}
+	extractResponseUserBody(w.Body, &gotResp)
+
+	if code := w.Code; code != http.StatusOK {
+		t.Errorf("expected status code of 200, but got %d", code)
+	}
+
+	if !reflect.DeepEqual(expectedResp, gotResp) {
+		t.Errorf("expected response %v, but got %v", expectedResp, gotResp)
+	}
 }
 
 func extractResponseUserBody(body io.Reader, v interface{}) {
