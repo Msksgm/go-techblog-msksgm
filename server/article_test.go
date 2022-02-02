@@ -109,9 +109,8 @@ func Test_getArticle(t *testing.T) {
 	articleStore.ArticlesFn = func() ([]*model.Article, error) {
 		return articles, nil
 	}
-	article := articles[0]
 	srv.router.ServeHTTP(w, req)
-	expectedResp := articleResponse(article)
+	expectedResp := articleResponse(articles[0])
 
 	gotResp := M{}
 	extractResponseArticleBody(w.Body, &gotResp)
