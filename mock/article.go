@@ -8,7 +8,7 @@ import (
 
 type ArticleService struct {
 	CreateArticleFn func(*model.Article) error
-	ArticleBySlugFn func(*model.Article) (*model.Article, error)
+	ArticleBySlugFn func() (*model.Article, error)
 	ArticlesFn      func() ([]*model.Article, error)
 }
 
@@ -21,7 +21,7 @@ func (m *ArticleService) Articles(_ context.Context, af model.ArticleFilter) ([]
 }
 
 func (m *ArticleService) ArticleBySlug(_ context.Context, slug string) (*model.Article, error) {
-	return nil, nil
+	return m.ArticleBySlugFn()
 }
 
 func (m *ArticleService) DeleteArticle(_ context.Context, id uint) error {

@@ -123,6 +123,62 @@ func Test_getArticle(t *testing.T) {
 	}
 }
 
+func Test_updateArticle(t *testing.T) {
+	articleStore := &mock.ArticleService{}
+	userStore := &mock.UserService{}
+	srv := testServer()
+	srv.articleService = articleStore
+	srv.userService = userStore
+
+	token, err := generateUserToken(
+		&model.User{
+			ID:       1,
+			Username: "username",
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	input := `{
+		"article": {
+			"title": "title_updated",
+			"body": "body_updated",
+			"slug": "slug_updated"
+		}
+	}`
+
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/articles/{slug}", strings.NewReader(input))
+	req.Header.Add("Authorization", strings.Join([]string{"Bearer", token}, " "))
+	w := httptest.NewRecorder()
+
+	currentUser := &model.User{
+		Username: "username",
+		Token:    token,
+	}
+	userStore.GetCurrentUserFn = func() *model.User {
+		return currentUser
+	}
+
+	var article model.Article
+	articleStore.ArticleBySlugFn = func() (*model.Article, error) {
+		return &article, nil
+	}
+	srv.router.ServeHTTP(w, req)
+	expectedResp := articleResponse(&article)
+
+	gotResp := M{}
+	extractResponseArticleBody(w.Body, &gotResp)
+
+	if code := w.Code; code != http.StatusOK {
+		t.Errorf("expected status code of 200, but got %d", code)
+	}
+
+	if !reflect.DeepEqual(expectedResp, gotResp) {
+		t.Errorf("expected response %v, but got %v", expectedResp, gotResp)
+	}
+}
+
 func extractResponseArticleBody(body io.Reader, v interface{}) {
 	mm := M{}
 	_ = readJSON(body, &mm)
