@@ -11,6 +11,7 @@ type ArticleService struct {
 	ArticleBySlugFn func() (*model.Article, error)
 	ArticlesFn      func() ([]*model.Article, error)
 	DeleteArticleFn func() error
+	UpdateArticleFn func(*model.Article) error
 }
 
 func (m *ArticleService) CreateArticle(_ context.Context, article *model.Article) error {
@@ -30,5 +31,5 @@ func (m *ArticleService) DeleteArticle(_ context.Context, id uint) error {
 }
 
 func (m *ArticleService) UpdateArticle(_ context.Context, article *model.Article, patch model.ArticlePatch) error {
-	return nil
+	return m.UpdateArticleFn(article)
 }
