@@ -17,16 +17,18 @@ type config struct {
 func main() {
 	cfg, err := envConfig()
 	if err != nil {
-		log.Fatalf("error is occuered because %v", err)
+		log.Fatalln("err:", err)
 	}
 
 	db, err := postgres.Open(cfg.dbURI)
 	if err != nil {
-		log.Fatalf("cannot open database: %v", err)
+		log.Fatalln("err:", err)
 	}
 
 	srv := server.NewServer(db)
-	log.Fatal(srv.Run(cfg.port))
+	if err := srv.Run(cfg.port); err != nil {
+		log.Fatalln("err:", err)
+	}
 }
 
 func envConfig() (config, error) {
