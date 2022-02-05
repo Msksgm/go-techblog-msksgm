@@ -17,15 +17,13 @@ func NewUserService(db *DB) *UserService {
 	return &UserService{db}
 }
 
-func (us *UserService) CreateUser(ctx context.Context, user *model.User) (err error) {
+func (us *UserService) CreateUser(ctx context.Context, user *model.User) error {
 	tx, err := us.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	defer tx.Rollback()
 
 	if err := createUser(ctx, tx, user); err != nil {
 		return err
@@ -65,17 +63,15 @@ func (us *UserService) Authenticate(ctx context.Context, username, password stri
 	return user, nil
 }
 
-func (us *UserService) UserByUsername(ctx context.Context, username string) (user *model.User, err error) {
+func (us *UserService) UserByUsername(ctx context.Context, username string) (*model.User, error) {
 	tx, err := us.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
-	user, err = findOneUser(ctx, tx, model.UserFilter{Username: &username})
+	user, err := findOneUser(ctx, tx, model.UserFilter{Username: &username})
 	if err != nil {
 		return nil, err
 	}
@@ -133,16 +129,14 @@ func queryUsers(ctx context.Context, tx *sqlx.Tx, query string, args ...interfac
 	return users, nil
 }
 
-func (us *UserService) UpdateUser(ctx context.Context, user *model.User, patch model.UserPatch) (err error) {
+func (us *UserService) UpdateUser(ctx context.Context, user *model.User, patch model.UserPatch) error {
 	tx, err := us.db.BeginTxx(ctx, nil)
 	if err != nil {
 		log.Println(err)
 		return model.ErrInternal
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
 	if err := updateUser(ctx, tx, user, patch); err != nil {
 		log.Println(err)

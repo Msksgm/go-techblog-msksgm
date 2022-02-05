@@ -19,15 +19,13 @@ func NewArticleService(db *DB) *ArticleService {
 	return &ArticleService{db}
 }
 
-func (as *ArticleService) CreateArticle(ctx context.Context, article *model.Article) (err error) {
+func (as *ArticleService) CreateArticle(ctx context.Context, article *model.Article) error {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
 	if err := createArticle(ctx, tx, article); err != nil {
 		return err
@@ -57,17 +55,15 @@ func createArticle(ctx context.Context, tx *sqlx.Tx, article *model.Article) err
 	return nil
 }
 
-func (as *ArticleService) Articles(ctx context.Context, filter model.ArticleFilter) (articles []*model.Article, err error) {
+func (as *ArticleService) Articles(ctx context.Context, filter model.ArticleFilter) ([]*model.Article, error) {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
-	articles, err = findArticles(ctx, tx, filter)
+	articles, err := findArticles(ctx, tx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -141,17 +137,15 @@ func attachArticleAssociation(ctx context.Context, tx *sqlx.Tx, article *model.A
 	return nil
 }
 
-func (as *ArticleService) ArticleBySlug(ctx context.Context, slug string) (article *model.Article, err error) {
+func (as *ArticleService) ArticleBySlug(ctx context.Context, slug string) (*model.Article, error) {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
-	article, err = findArticleBySlug(ctx, tx, slug)
+	article, err := findArticleBySlug(ctx, tx, slug)
 	if err != nil {
 		return nil, err
 	}
@@ -173,15 +167,13 @@ func findArticleBySlug(ctx context.Context, tx *sqlx.Tx, slug string) (*model.Ar
 	return articles[0], err
 }
 
-func (as *ArticleService) UpdateArticle(ctx context.Context, article *model.Article, filter model.ArticlePatch) (err error) {
+func (as *ArticleService) UpdateArticle(ctx context.Context, article *model.Article, filter model.ArticlePatch) error {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
 	err = updateArticle(ctx, tx, article, filter)
 
@@ -220,15 +212,13 @@ func updateArticle(ctx context.Context, tx *sqlx.Tx, article *model.Article, pat
 	return nil
 }
 
-func (as *ArticleService) DeleteArticle(ctx context.Context, id uint) (err error) {
+func (as *ArticleService) DeleteArticle(ctx context.Context, id uint) error {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err = tx.Rollback()
-	}()
+	tx.Rollback()
 
 	err = deleteArticle(ctx, tx, id)
 
