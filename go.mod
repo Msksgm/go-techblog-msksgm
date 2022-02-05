@@ -8,13 +8,13 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gosimple/slug v1.12.0
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/lib/pq v1.2.0
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+	github.com/lib/pq v1.10.4
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
 
 require (
-	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
