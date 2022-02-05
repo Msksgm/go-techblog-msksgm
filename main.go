@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -14,7 +15,10 @@ type config struct {
 }
 
 func main() {
-	cfg := envConfig()
+	cfg, err := envConfig()
+	if err != nil {
+		log.Fatalf("error is occuered because %v", err)
+	}
 
 	db, err := postgres.Open(cfg.dbURI)
 	if err != nil {
@@ -25,17 +29,16 @@ func main() {
 	log.Fatal(srv.Run(cfg.port))
 }
 
-func envConfig() config {
+func envConfig() (config, error) {
 	port, ok := os.LookupEnv("PORT")
-
 	if !ok {
-		panic("PORT not provided")
+		return config{}, fmt.Errorf("PORT is not provided")
 	}
 
 	dbURI, ok := os.LookupEnv("POSTGRESQL_URL")
 	if !ok {
-		panic("POSTGRESQL_URL not provided")
+		return config{}, fmt.Errorf("POSTGRESQL_URL is not provided")
 	}
 
-	return config{port: port, dbURI: dbURI}
+	return config{port: port, dbURI: dbURI}, nil
 }

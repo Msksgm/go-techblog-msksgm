@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/msksgm/go-techblog-msksgm/model"
@@ -19,14 +20,14 @@ func setContextUser(r *http.Request, u *model.User) *http.Request {
 	return r.WithContext(ctx)
 }
 
-func userFromContext(ctx context.Context) *model.User {
+func userFromContext(ctx context.Context) (*model.User, error) {
 	user, ok := ctx.Value(userKey).(*model.User)
 
 	if !ok {
-		panic("missing user context key")
+		return user, fmt.Errorf("error is occured when ctx.Value(userKey).(*model.User)")
 	}
 
-	return user
+	return user, nil
 }
 
 func setContextUserToken(r *http.Request, token string) *http.Request {

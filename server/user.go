@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -121,7 +122,10 @@ func (s *Server) loginUser() http.HandlerFunc {
 func (s *Server) getCurrentUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		user := userFromContext(ctx)
+		user, err := userFromContext(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
 		user.Token = userTokenFromContext(ctx)
 
 		writeJSON(w, http.StatusOK, M{"user": user})
@@ -149,7 +153,10 @@ func (s *Server) updateUser() http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		user := userFromContext(ctx)
+		user, err := userFromContext(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
 		patch := model.UserPatch{
 			Username: input.User.Username,
 		}
@@ -158,7 +165,7 @@ func (s *Server) updateUser() http.HandlerFunc {
 			user.SetPassword(*v)
 		}
 
-		err := s.userService.UpdateUser(ctx, user, patch)
+		err = s.userService.UpdateUser(ctx, user, patch)
 		if err != nil {
 			serverError(w, err)
 			return

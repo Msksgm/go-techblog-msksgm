@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +22,10 @@ func Test_healthcheck(t *testing.T) {
 	// テストのリクエストを実行
 	srv.router.ServeHTTP(w, req)
 	gotResp := M{}
-	extractResponseBody(w.Body, &gotResp)
+	err := extractResponseBody(w.Body, &gotResp)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// レスポンスの期待値を宣言
 	expectResp := M{
 		"message": "health",
@@ -47,15 +51,16 @@ func testServer() *Server {
 	return srv
 }
 
-func extractResponseBody(body io.Reader, v interface{}) {
+func extractResponseBody(body io.Reader, v interface{}) error {
 	mm := M{}
 	_ = readJSON(body, &mm)
 	byt, err := json.Marshal(mm)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Marshal()", err)
 	}
 	err = json.Unmarshal(byt, v)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Unmarshal", err)
 	}
+	return nil
 }

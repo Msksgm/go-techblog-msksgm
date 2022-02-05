@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -48,7 +49,10 @@ func (s *Server) createArticle() http.HandlerFunc {
 			Slug:  input.Article.Slug,
 		}
 
-		user := userFromContext(r.Context())
+		user, err := userFromContext(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
 		article.Author = user
 		article.AuthorID = user.ID
 
@@ -139,7 +143,10 @@ func (s *Server) updateArticle() http.HandlerFunc {
 			return
 		}
 
-		user := userFromContext(r.Context())
+		user, err := userFromContext(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if user.ID != article.AuthorID {
 			err := ErrorM{"article": []string{"forbidden request"}}
@@ -177,7 +184,10 @@ func (s *Server) deleteArticle() http.HandlerFunc {
 			return
 		}
 
-		user := userFromContext(r.Context())
+		user, err := userFromContext(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if user.ID != article.AuthorID {
 			err := ErrorM{"article": []string{"forbidden request"}}

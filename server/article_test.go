@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -27,7 +28,7 @@ func Test_createArticle(t *testing.T) {
 		},
 	)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
 	input := `{
@@ -59,7 +60,10 @@ func Test_createArticle(t *testing.T) {
 	expectedResp := articleResponse(&article)
 
 	gotResp := M{}
-	extractResponseArticleBody(w.Body, &gotResp)
+	err = extractResponseArticleBody(w.Body, &gotResp)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if code := w.Code; code != http.StatusCreated {
 		t.Errorf("expected status code of 201, but got %d", code)
@@ -84,7 +88,7 @@ func Test_createArticle(t *testing.T) {
 // 		},
 // 	)
 // 	if err != nil {
-// 		panic(err)
+// 		t.Fatal(err)
 // 	}
 
 // 	req := httptest.NewRequest(http.MethodGet, "/api/v1/articles", nil)
@@ -177,7 +181,11 @@ func Test_getArticle(t *testing.T) {
 	expectedResp := articleResponse(articles[0])
 
 	gotResp := M{}
-	extractResponseArticleBody(w.Body, &gotResp)
+	err = extractResponseArticleBody(w.Body, &gotResp)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if code := w.Code; code != http.StatusOK {
 		t.Errorf("expected status code of 200, but got %d", code)
 	}
@@ -302,15 +310,16 @@ func Test_deleteArticle(t *testing.T) {
 	}
 }
 
-func extractResponseArticleBody(body io.Reader, v interface{}) {
+func extractResponseArticleBody(body io.Reader, v interface{}) error {
 	mm := M{}
 	_ = readJSON(body, &mm)
 	byt, err := json.Marshal(mm["article"])
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Marshal()", err)
 	}
 	err = json.Unmarshal(byt, v)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Unmarshal", err)
 	}
+	return nil
 }

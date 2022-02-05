@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,10 @@ func Test_createUser(t *testing.T) {
 	srv.router.ServeHTTP(w, req)
 	expectedResp := userResponse(&user)
 	gotResp := M{}
-	extractResponseUserBody(w.Body, &gotResp)
+	err := extractResponseUserBody(w.Body, &gotResp)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if code := w.Code; code != http.StatusCreated {
 		t.Errorf("expected status code of 201, but got %d", code)
@@ -88,7 +92,7 @@ func Test_getCurrentUser(t *testing.T) {
 		},
 	)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	user := &model.User{
 		Username: "username",
@@ -105,7 +109,11 @@ func Test_getCurrentUser(t *testing.T) {
 
 	srv.router.ServeHTTP(w, req)
 	gotResp := M{}
-	extractResponseUserBody(w.Body, &gotResp)
+	err = extractResponseUserBody(w.Body, &gotResp)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if code := w.Code; code != http.StatusOK {
 		t.Errorf("expected status code of 200, but got %d", code)
 	}
@@ -126,7 +134,7 @@ func Test_getCurrentUser(t *testing.T) {
 // 		},
 // 	)
 // 	if err != nil {
-// 		panic(err)
+//		t.Fatal(err)
 // 	}
 
 // 	input := `{
@@ -168,15 +176,16 @@ func Test_getCurrentUser(t *testing.T) {
 // 	}
 // }
 
-func extractResponseUserBody(body io.Reader, v interface{}) {
+func extractResponseUserBody(body io.Reader, v interface{}) error {
 	mm := M{}
 	_ = readJSON(body, &mm)
 	byt, err := json.Marshal(mm["user"])
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Marshal()", err)
 	}
 	err = json.Unmarshal(byt, v)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("err: %v is occuered when json.Unmarshal", err)
 	}
+	return nil
 }
