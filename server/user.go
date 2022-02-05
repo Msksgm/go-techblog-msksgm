@@ -68,7 +68,10 @@ func (s *Server) createUser() http.HandlerFunc {
 			Username: input.User.Username,
 		}
 
-		user.SetPassword(input.User.Password)
+		err := user.SetPassword(input.User.Password)
+		if err != nil {
+			log.Fatalf("err is occured: %v", err)
+		}
 
 		if err := s.userService.CreateUser(r.Context(), &user); err != nil {
 			switch {
@@ -162,7 +165,10 @@ func (s *Server) updateUser() http.HandlerFunc {
 		}
 
 		if v := input.User.Password; v != nil {
-			user.SetPassword(*v)
+			err := user.SetPassword(*v)
+			if err != nil {
+				log.Fatalf("err is occured: %v", err)
+			}
 		}
 
 		err = s.userService.UpdateUser(ctx, user, patch)
