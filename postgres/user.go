@@ -69,7 +69,7 @@ func (us *UserService) UserByUsername(ctx context.Context, username string) (*mo
 		return nil, err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	user, err := findOneUser(ctx, tx, model.UserFilter{Username: &username})
 	if err != nil {
@@ -136,7 +136,7 @@ func (us *UserService) UpdateUser(ctx context.Context, user *model.User, patch m
 		return model.ErrInternal
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	if err := updateUser(ctx, tx, user, patch); err != nil {
 		log.Println(err)

@@ -25,7 +25,7 @@ func (as *ArticleService) CreateArticle(ctx context.Context, article *model.Arti
 		return err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	if err := createArticle(ctx, tx, article); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (as *ArticleService) Articles(ctx context.Context, filter model.ArticleFilt
 		return nil, err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	articles, err := findArticles(ctx, tx, filter)
 	if err != nil {
@@ -143,7 +143,7 @@ func (as *ArticleService) ArticleBySlug(ctx context.Context, slug string) (*mode
 		return nil, err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	article, err := findArticleBySlug(ctx, tx, slug)
 	if err != nil {
@@ -173,7 +173,7 @@ func (as *ArticleService) UpdateArticle(ctx context.Context, article *model.Arti
 		return err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	err = updateArticle(ctx, tx, article, filter)
 
@@ -218,7 +218,7 @@ func (as *ArticleService) DeleteArticle(ctx context.Context, id uint) error {
 		return err
 	}
 
-	tx.Rollback()
+	defer tx.Rollback()
 
 	err = deleteArticle(ctx, tx, id)
 
