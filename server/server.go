@@ -31,8 +31,7 @@ func NewServer(db *postgres.DB) *Server {
 	s.routes()
 
 	s.userService = postgres.NewUserService(db)
-	as := postgres.NewArticleService(db)
-	s.articleService = as
+	s.articleService = postgres.NewArticleService(db)
 	s.server.Handler = s.router
 
 	return &s
