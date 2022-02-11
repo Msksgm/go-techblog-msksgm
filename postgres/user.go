@@ -23,9 +23,10 @@ func (us *UserService) CreateUser(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	defer tx.Rollback()
-
 	if err := createUser(ctx, tx, user); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 	return tx.Commit()
@@ -69,10 +70,11 @@ func (us *UserService) UserByUsername(ctx context.Context, username string) (*mo
 		return nil, err
 	}
 
-	defer tx.Rollback()
-
 	user, err := findOneUser(ctx, tx, model.UserFilter{Username: &username})
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
 		return nil, err
 	}
 
@@ -136,10 +138,10 @@ func (us *UserService) UpdateUser(ctx context.Context, user *model.User, patch m
 		return model.ErrInternal
 	}
 
-	defer tx.Rollback()
-
 	if err := updateUser(ctx, tx, user, patch); err != nil {
-		log.Println(err)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return model.ErrInternal
 	}
 
